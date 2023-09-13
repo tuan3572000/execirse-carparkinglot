@@ -1,6 +1,6 @@
-package com.exercise.carparking.repository;
+package com.exercise.carparking.application.domain.repository;
 
-import com.exercise.carparking.domain.model.CarParkLocation;
+import com.exercise.carparking.application.domain.model.CarParkLocation;
 
 import java.util.List;
 

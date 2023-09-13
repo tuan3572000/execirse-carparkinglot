@@ -1,5 +1,6 @@
 package com.exercise.carparking.util;
 
+import com.exercise.carparking.application.util.CoordinationConverter;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.geo.Point;
 

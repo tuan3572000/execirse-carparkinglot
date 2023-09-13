@@ -1,4 +1,4 @@
-package com.exercise.carparking.util;
+package com.exercise.carparking.application.util;
 
 import org.locationtech.proj4j.*;
 import org.springframework.data.geo.Point;
@@ -6,6 +6,7 @@ import org.springframework.data.geo.Point;
 public class CoordinationConverter {
     private static CoordinationConverter instance;
     private  final CoordinateTransform SVY21_TRANSFORM;
+    private static final Object MUTEX_OBJ = new Object();
     private CoordinationConverter() {
         CRSFactory crsFactory = new CRSFactory();
         CoordinateReferenceSystem SVY21 = crsFactory.createFromName("epsg:3414");
@@ -19,7 +20,7 @@ public class CoordinationConverter {
             return instance;
         }
 
-        synchronized (""){
+        synchronized (MUTEX_OBJ) {
             if(instance == null) {
                 instance = new CoordinationConverter();
             }

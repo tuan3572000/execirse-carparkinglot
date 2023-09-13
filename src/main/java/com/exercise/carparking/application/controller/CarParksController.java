@@ -1,8 +1,8 @@
-package com.exercise.carparking.controller;
+package com.exercise.carparking.application.controller;
 
-import com.exercise.carparking.service.CarParkAvailabilityTask;
-import com.exercise.carparking.service.CarParkService;
-import com.exercise.carparking.service.dto.CarParkDTO;
+import com.exercise.carparking.application.domain.service.CarParkAvailabilitySyncTask;
+import com.exercise.carparking.application.domain.service.CarParkService;
+import com.exercise.carparking.application.domain.service.dto.CarParkDTO;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,18 +17,18 @@ import java.util.List;
 public class CarParksController {
 
     private CarParkService carParkService;
-    private CarParkAvailabilityTask carParkAvailabilityTask;
+    private CarParkAvailabilitySyncTask carParkAvailabilitySyncTask;
     @GetMapping("nearest")
     public List<CarParkDTO> nearestAvailableCarParks(@RequestParam("longitude") double longitude,
                                                      @RequestParam("latitude") double latitude,
                                                      @RequestParam(value = "page", defaultValue = "1", required = false) int page,
-                                                     @RequestParam(value = "per_page", defaultValue = "3", required = false) int per_page) {
+                                                     @RequestParam(value = "per_page", defaultValue = "30", required = false) int per_page) {
         return carParkService.nearest(longitude, latitude, page, per_page);
     }
 
     @GetMapping("availability-sync")
     public void refreshCarParkAvailability() {
-        carParkAvailabilityTask.sync();
+        carParkAvailabilitySyncTask.sync();
     }
 
 }

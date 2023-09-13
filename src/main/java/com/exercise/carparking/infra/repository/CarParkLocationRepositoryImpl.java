@@ -1,17 +1,12 @@
-package com.exercise.carparking.infra.repositoryimpl;
+package com.exercise.carparking.infra.repository;
 
-import com.exercise.carparking.domain.model.CarParkLocation;
-import com.exercise.carparking.repository.CarParkLocationRepository;
+import com.exercise.carparking.application.domain.model.CarParkLocation;
+import com.exercise.carparking.application.domain.repository.CarParkLocationRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.exercise.carparking.domain.model;
+package com.exercise.carparking.application.domain.model;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;

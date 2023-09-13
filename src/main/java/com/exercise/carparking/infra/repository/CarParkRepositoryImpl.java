@@ -1,7 +1,7 @@
-package com.exercise.carparking.infra.repositoryimpl;
+package com.exercise.carparking.infra.repository;
 
-import com.exercise.carparking.repository.CarParkRepository;
-import com.exercise.carparking.service.dto.CarParkDTO;
+import com.exercise.carparking.application.domain.repository.CarParkRepository;
+import com.exercise.carparking.application.domain.service.dto.CarParkDTO;
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -16,7 +16,7 @@ class CarParkRepositoryImpl implements CarParkRepository {
     @Override
     public List<CarParkDTO> getAll() {
         String query = "SELECT address, longitude, latitude, available_lots, total_lots FROM CAR_PARK_AVAILABILITY avail " +
-            "LEFT JOIN CAR_PARK_LOCATION location ON avail.car_park_no = location.car_park_no WHERE avail.available_lots > 0;";
+            "INNER JOIN CAR_PARK_LOCATION location ON avail.car_park_no = location.car_park_no WHERE avail.available_lots > 0;";
         return jdbcTemplate.query(query, (rs, rowNum) ->
             CarParkDTO.builder()
                 .address(rs.getString("address"))
