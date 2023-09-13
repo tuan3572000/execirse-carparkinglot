@@ -1,4 +1,4 @@
-package com.exercise.carparking.application.domain.service.dto;
+package com.exercise.carparking.application.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;

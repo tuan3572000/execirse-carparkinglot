@@ -1,7 +1,7 @@
 package com.exercise.carparking.infra.repository;
 
+import com.exercise.carparking.application.domain.dto.CarParkDTO;
 import com.exercise.carparking.application.domain.repository.CarParkRepository;
-import com.exercise.carparking.application.domain.service.dto.CarParkDTO;
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;

@@ -1,6 +1,5 @@
-package com.exercise.carparking.util;
+package com.exercise.carparking.application.util;
 
-import com.exercise.carparking.application.util.CoordinationConverter;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.geo.Point;
 
@@ -10,7 +9,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class CoordinationConverterTest {
 
     @Test
-    public void shouldConvertFrom_SVY21_To_WGS84 (){
+    public void shouldConvertFrom_SVY21_To_WGS84() {
         double xCoord = 30314.7936;
         double yCoord = 31490.4942;
         Point point = CoordinationConverter.getInstance().fromSVY21ToWGS84(xCoord, yCoord);

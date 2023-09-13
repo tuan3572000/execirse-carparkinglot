@@ -8,9 +8,9 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @SpringBootApplication
 @EnableFeignClients
 public class CarparkingApplication {
-	public static void main(String[] args) {
-		SpringApplication.run(CarparkingApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(CarparkingApplication.class, args);
+    }
 
 
 }

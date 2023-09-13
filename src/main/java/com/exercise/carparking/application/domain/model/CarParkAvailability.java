@@ -12,10 +12,10 @@ import java.time.LocalDateTime;
 @Builder
 @EqualsAndHashCode(of = {"carParkNo", "lotType"})
 public class CarParkAvailability {
+    // Singapore time
+    LocalDateTime updatedAt;
     private String carParkNo;
     private String lotType;
     private int totalLots;
     private int availableLots;
-    // Singapore time
-    LocalDateTime updatedAt;
 }

@@ -8,13 +8,13 @@ import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
-class CarParkAvailabilityTaskImpl implements CarParkAvailabilitySyncTask {
+class CarParkAvailabilitySyncTaskImpl implements CarParkAvailabilitySyncTask {
     private CarParkAvailableIndexingService carParkAvailableIndexingService;
     private CarParkAvailabilityService carParkAvailabilityService;
 
 
     @Override
-    public void sync() {
+    public void execute() {
         carParkAvailabilityService.syncAvailableCarParks();
         carParkAvailableIndexingService.indexAvailableCarParks();
     }

@@ -1,6 +1,6 @@
 package com.exercise.carparking.application.domain.repository;
 
-import com.exercise.carparking.application.domain.service.dto.CarParkDTO;
+import com.exercise.carparking.application.domain.dto.CarParkDTO;
 
 import java.util.List;
 

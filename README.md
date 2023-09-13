@@ -18,12 +18,12 @@ Apply CQRS pattern
 - Postgresql for Command
 - Redis for Query
 
-All data will be stored in Postgresql, whenever a task to get car parks availability is done, populate data to Redis
-cache for query
+All data will be stored in Postgresql, whenever a task to get car parks availability is done, populate data to Redis for
+querying
 
 * Pros
     - High throughput (query in cache)
-    - Not limited only to DBs which can support geospatial query
+    - Freely to use any databases (Not limited to DBs which can support geospatial query)
 
 * Cons
     - Resource for Redis server
@@ -31,6 +31,11 @@ cache for query
 
 **Local setup**
 
-* Java 17
-* Maven 3.9.2
+Java 17 , Maven 3.9.2
+
+**Testing**
+
+Conducted manual test by myself
+
+Does not have enough time to write unit test (spend too much time on design and clean code)
 

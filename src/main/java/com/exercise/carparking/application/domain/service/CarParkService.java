@@ -1,15 +1,14 @@
 package com.exercise.carparking.application.domain.service;
 
+import com.exercise.carparking.application.domain.dto.CarParkDTO;
 import com.exercise.carparking.application.domain.model.CarParkAvailability;
 import com.exercise.carparking.application.domain.model.CarParkLocation;
 import com.exercise.carparking.application.domain.repository.CarParkAvailabilityRepository;
 import com.exercise.carparking.application.domain.repository.CarParkLocationRepository;
 import com.exercise.carparking.application.domain.repository.CarParkRepository;
-import com.exercise.carparking.application.domain.service.dto.CarParkDTO;
-import com.exercise.carparking.application.domain.service.dto.CarparkData;
 import com.exercise.carparking.application.util.CSVFileReader;
 import com.exercise.carparking.application.util.CoordinationConverter;
-import com.exercise.carparking.gateway.CarParkAvailabilityClient;
+import com.exercise.carparking.gateway.CarParkAvailabilityGateway;
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import org.springframework.data.geo.Circle;
@@ -24,29 +23,23 @@ import org.springframework.util.SerializationUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.function.Function;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
 public class CarParkService implements CarParkAvailableIndexingService, CarParkAvailabilityService {
+    private static final String CAR_PARK_REDIS_KEY = "carpark:available";
     private final RedisTemplate<String, CarParkDTO> redisTemplate;
     private final CarParkLocationRepository carParkLocationRepository;
     private CarParkRepository carParkRepository;
-    private CarParkAvailabilityClient carParkAvailabilityClient;
     private CarParkAvailabilityRepository carParkAvailabilityRepository;
-    private static final String CAR_PARK_REDIS_KEY = "carpark:available";
+    private CarParkAvailabilityGateway carParkAvailabilityGateway;
 
     @PostConstruct
     private void init() {
         if (this.carParkLocationRepository.isEmpty()) {
             CoordinationConverter coordinationConverter = CoordinationConverter.getInstance();
-            Iterator<String[]> rawCarParkLocationsIterator = CSVFileReader.read("classpath:HDBCarparkInformation.csv").iterator();
+            Iterator<String[]> rawCarParkLocationsIterator = CSVFileReader.read("HDBCarparkInformation.csv").iterator();
             List<CarParkLocation> batchCarParkLocations = new ArrayList<>();
             while (rawCarParkLocationsIterator.hasNext()) {
                 String[] row = rawCarParkLocationsIterator.next();
@@ -86,35 +79,13 @@ public class CarParkService implements CarParkAvailableIndexingService, CarParkA
 
     @Override
     public int syncAvailableCarParks() {
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-        CarparkData carparkData = carParkAvailabilityClient.fetchCarParkAvailability();
-        Function<CarparkData.Carpark, List<CarParkAvailability>> toCarParkAvailabilitiesFunction = (carpark) ->
-            carpark.getCarparkInfo().stream()
-                .map((item) -> CarParkAvailability.builder()
-                    .carParkNo(carpark.getCarparkNumber())
-                    .updatedAt(LocalDateTime.parse(carpark.getUpdateDatetime(), formatter))
-                    .availableLots(Integer.parseInt(item.getLotsAvailable()))
-                    .totalLots(Integer.parseInt(item.getTotalLots()))
-                    .lotType(item.getLotType())
-                    .build()
-                ).toList();
-
-
-        List<CarParkAvailability> carParkAvailabilities = carparkData.getItems().stream()
-            .map(CarparkData.Item::getCarparkData)
-            .flatMap(List::stream)
-            .map(toCarParkAvailabilitiesFunction)
-            .flatMap(List::stream)
-            .toList();
-
+        List<CarParkAvailability> carParkAvailabilities = carParkAvailabilityGateway.crawlAvailableCarParks();
         return carParkAvailabilityRepository.save(carParkAvailabilities);
     }
 
     @Override
     public void indexAvailableCarParks() {
-        String outdatedKey = CAR_PARK_REDIS_KEY + "_outdated";
-        redisTemplate.rename(CAR_PARK_REDIS_KEY, outdatedKey);
-        redisTemplate.expireAt(outdatedKey, Instant.now());
+        redisTemplate.expireAt(CAR_PARK_REDIS_KEY, Instant.now());
         Iterator<CarParkDTO> carParkDTOIterator = carParkRepository.getAll().iterator();
         final List<CarParkDTO> batchIndexingCarParkDTOs = new ArrayList<>();
         while (carParkDTOIterator.hasNext()) {
@@ -134,7 +105,8 @@ public class CarParkService implements CarParkAvailableIndexingService, CarParkA
         redisTemplate.executePipelined(
             (RedisCallback<Integer>) connection -> {
                 batchIndexingCarParkDTOs
-                    .forEach(item -> connection.geoCommands().geoAdd(key, new Point(item.getLongitude(), item.getLatitude()), SerializationUtils.serialize((item))));
+                    .forEach(item -> connection.geoCommands()
+                        .geoAdd(key, new Point(item.getLongitude(), item.getLatitude()), Objects.requireNonNull(SerializationUtils.serialize((item)))));
                 return null;
             });
     }

@@ -4,9 +4,10 @@ import org.locationtech.proj4j.*;
 import org.springframework.data.geo.Point;
 
 public class CoordinationConverter {
-    private static CoordinationConverter instance;
-    private  final CoordinateTransform SVY21_TRANSFORM;
     private static final Object MUTEX_OBJ = new Object();
+    private static CoordinationConverter instance;
+    private final CoordinateTransform SVY21_TRANSFORM;
+
     private CoordinationConverter() {
         CRSFactory crsFactory = new CRSFactory();
         CoordinateReferenceSystem SVY21 = crsFactory.createFromName("epsg:3414");
@@ -15,13 +16,13 @@ public class CoordinationConverter {
         SVY21_TRANSFORM = ctFactory.createTransform(SVY21, WGS84);
     }
 
-    public static synchronized CoordinationConverter  getInstance() {
-        if(instance != null) {
+    public static synchronized CoordinationConverter getInstance() {
+        if (instance != null) {
             return instance;
         }
 
         synchronized (MUTEX_OBJ) {
-            if(instance == null) {
+            if (instance == null) {
                 instance = new CoordinationConverter();
             }
         }

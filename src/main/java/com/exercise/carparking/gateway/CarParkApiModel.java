@@ -1,4 +1,4 @@
-package com.exercise.carparking.application.domain.service.dto;
+package com.exercise.carparking.gateway;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class CarparkData {
+class CarParkApiModel {
     @JsonProperty("items")
     private List<Item> items;
 
