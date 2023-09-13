@@ -5,6 +5,8 @@ import com.exercise.carparking.repository.CarParkAvailabilityRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
@@ -16,44 +18,27 @@ import java.util.List;
 @AllArgsConstructor
 class CarParkAvailabilityRepositoryImpl implements CarParkAvailabilityRepository {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Override
     public int save(List<CarParkAvailability> carParkLocations) {
-        try{
-            return jdbcTemplate.batchUpdate("UPDATE CAR_PARK_AVAILABILITY SET available_lots = ?, total_lots = ?, updated_at = ? WHERE car_park_no = ? AND lot_type = ?",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setInt(1, carParkLocations.get(i).getAvailableLots());
-                        ps.setInt(2, carParkLocations.get(i).getTotalLots());
-                        ps.setTimestamp(3, Timestamp.valueOf(carParkLocations.get(i).getUpdatedAt()));
-                        ps.setString(4, carParkLocations.get(i).getCarParkNo());
-                        ps.setString(5, carParkLocations.get(i).getLotType());
-                    }
-                    @Override
-                    public int getBatchSize() {
-                        return carParkLocations.size();
-                    }
-                }).length;
-        } catch (Exception e) {
-            return jdbcTemplate.batchUpdate("INSERT INTO CAR_PARK_AVAILABILITY VALUES (?, ?, ?, ?, ?)",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setString(1, carParkLocations.get(i).getCarParkNo());
-                        ps.setInt(2, carParkLocations.get(i).getAvailableLots());
-                        ps.setInt(3, carParkLocations.get(i).getTotalLots());
-                        ps.setString(4, carParkLocations.get(i).getLotType());
-                        ps.setTimestamp(5, Timestamp.valueOf(carParkLocations.get(i).getUpdatedAt()));
-                    }
-                    @Override
-                    public int getBatchSize() {
-                        return carParkLocations.size();
-                    }
-                }).length;
-        }
+        String sql = "INSERT INTO car_park_availability (car_park_no, lot_type, available_lots, total_lots, updated_at) " +
+            "VALUES (:car_park_no, :lot_type, :available_lots, :total_lots, :updated_at) " +
+            "ON CONFLICT (car_park_no, lot_type) DO UPDATE SET " +
+            "available_lots=:available_lots, " +
+            "total_lots=:total_lots, " +
+            "updated_at=:updated_at";
 
+        MapSqlParameterSource[] batchParams = carParkLocations.stream()
+            .map(item -> new MapSqlParameterSource()
+                .addValue("car_park_no", item.getCarParkNo())
+                .addValue("lot_type", item.getLotType())
+                .addValue("available_lots", item.getAvailableLots())
+                .addValue("total_lots", item.getTotalLots())
+                .addValue("updated_at", Timestamp.valueOf(item.getUpdatedAt())))
+            .toArray(MapSqlParameterSource[]::new);
+
+        return jdbcTemplate.batchUpdate(sql, batchParams).length;
     }
 
 }

@@ -12,5 +12,4 @@ public class CarParkLocation {
     private String address;
     private double latitude;
     private double longitude;
-
 }

@@ -26,8 +26,8 @@ public class CarParksController {
         return carParkService.nearest(longitude, latitude, page, per_page);
     }
 
-    @GetMapping("refresh")
-    public void refreshCarParkAvailabilityData() {
+    @GetMapping("availability-sync")
+    public void refreshCarParkAvailability() {
         carParkAvailabilityTask.sync();
     }
 

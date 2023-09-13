@@ -9,8 +9,11 @@ import java.io.Serializable;
 @Value
 @Builder
 public class CarParkDTO implements Serializable {
+    @JsonProperty("address")
     String address;
+    @JsonProperty("latitude")
     double latitude;
+    @JsonProperty("longitude")
     double longitude;
     @JsonProperty("total_lots")
     int totalLots;

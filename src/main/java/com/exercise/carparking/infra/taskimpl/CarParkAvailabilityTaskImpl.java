@@ -6,6 +6,7 @@ import com.exercise.carparking.gateway.CarParkAvailabilityClient;
 import com.exercise.carparking.repository.CarParkAvailabilityRepository;
 import com.exercise.carparking.service.CarParkAvailabilityTask;
 import com.exercise.carparking.service.dto.CarParkInfoDTO;
+import com.exercise.carparking.service.dto.CarparkData;
 import lombok.AllArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -13,7 +14,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 @Service
@@ -26,19 +29,22 @@ public class CarParkAvailabilityTaskImpl implements CarParkAvailabilityTask {
     @Override
     public void sync() {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-        List<CarParkInfoDTO> carParkInfoDTOs = carParkAvailabilityClient.fetchCarParkAvailability();
-        Function<CarParkInfoDTO, List<CarParkAvailability>> toCarParkAvailabilitiesFunction = (carParkInfoDTO) ->
-            Arrays.stream(carParkInfoDTO.getCarparkInfo())
+        CarparkData carparkData = carParkAvailabilityClient.fetchCarParkAvailability();
+        Function<CarparkData.Carpark, List<CarParkAvailability>> toCarParkAvailabilitiesFunction = (carpark) ->
+            carpark.getCarparkInfo().stream()
                 .map((item) -> CarParkAvailability.builder()
-                    .carParkNo(carParkInfoDTO.getCarparkNumber())
-                    .updatedAt(LocalDateTime.parse(carParkInfoDTO.getUpdateDatetime(), formatter))
+                    .carParkNo(carpark.getCarparkNumber())
+                    .updatedAt(LocalDateTime.parse(carpark.getUpdateDatetime(), formatter))
                     .availableLots(Integer.parseInt(item.getLotsAvailable()))
                     .totalLots(Integer.parseInt(item.getTotalLots()))
                     .lotType(item.getLotType())
                     .build()
                 ).toList();
+        
 
-        List<CarParkAvailability> carParkAvailabilities = carParkInfoDTOs.stream()
+        List<CarParkAvailability> carParkAvailabilities = carparkData.getItems().stream()
+            .map(CarparkData.Item::getCarparkData)
+            .flatMap(List::stream)
             .map(toCarParkAvailabilitiesFunction)
             .flatMap(List::stream)
             .toList();

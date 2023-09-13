@@ -5,38 +5,40 @@ import com.exercise.carparking.repository.CarParkLocationRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.List;
 
 @Repository
 @AllArgsConstructor
 class CarParkLocationRepositoryImpl implements CarParkLocationRepository {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Override
     public int save(List<CarParkLocation> carParkLocations) {
-        return jdbcTemplate.batchUpdate("INSERT INTO CAR_PARK_LOCATION VALUES (?, ?, ?, ?)",
-            new BatchPreparedStatementSetter() {
-                @Override
-                public void setValues(PreparedStatement ps, int i) throws SQLException {
-                    ps.setString(1, carParkLocations.get(i).getCarParkNo());
-                    ps.setString(2, carParkLocations.get(i).getAddress());
-                    ps.setDouble(3, carParkLocations.get(i).getLongitude());
-                    ps.setDouble(4, carParkLocations.get(i).getLatitude());
-                }
-                @Override
-                public int getBatchSize() {
-                    return carParkLocations.size();
-                }
-            }).length;
+        String sql = "INSERT INTO car_park_location (car_park_no, address, latitude, longitude) " +
+            "VALUES (:car_park_no, :address, :longitude, :latitude);";
+
+        MapSqlParameterSource[] batchParams = carParkLocations.stream()
+            .map(item -> new MapSqlParameterSource()
+                .addValue("car_park_no", item.getCarParkNo())
+                .addValue("address", item.getAddress())
+                .addValue("longitude", item.getLongitude())
+                .addValue("latitude", item.getLatitude()))
+            .toArray(MapSqlParameterSource[]::new);
+
+        return jdbcTemplate.batchUpdate(sql, batchParams).length;
     }
 
     @Override
-    public boolean hasData() {
-        return jdbcTemplate.queryForObject("count(1) from CAR_PARK_LOCATION", Integer.class) > 0;
+    public boolean isEmpty() {
+        return jdbcTemplate.queryForObject("select count(1) from CAR_PARK_LOCATION", new HashMap<>(), Integer.class) == 0;
     }
 }

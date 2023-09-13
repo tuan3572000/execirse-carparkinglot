@@ -12,7 +12,9 @@ import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Point;
+import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnection;
+import org.springframework.data.redis.core.GeoOperations;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.domain.geo.GeoLocation;
@@ -28,14 +30,14 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class CarParkService implements CarParkAvailableIndexingService {
-    private final RedisTemplate redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
     private final CarParkLocationRepository carParkLocationRepository;
     private CarParkRepository carParkRepository;
     private static final String CAR_PARK_REDIS_KEY = "carpark:available";
 
     @PostConstruct
     private void init() {
-        if (!this.carParkLocationRepository.hasData()) {
+        if (this.carParkLocationRepository.isEmpty()) {
             CoordinationConverter coordinationConverter = CoordinationConverter.getInstance();
             Iterator<String[]> rawCarParkLocationsIterator = CSVFileReader.read("classpath:HDBCarparkInformation.csv").iterator();
             List<CarParkLocation> batchCarParkLocations = new ArrayList<>();
@@ -46,8 +48,8 @@ public class CarParkService implements CarParkAvailableIndexingService {
                 carParkLocation.setCarParkNo(row[0]);
                 carParkLocation.setAddress(row[1]);
                 Point point = coordinationConverter.fromSVY21ToWGS84(Double.parseDouble(row[2]), Double.parseDouble(row[3]));
-                carParkLocation.setLongitude(point.getX());
-                carParkLocation.setLatitude(point.getY());
+                carParkLocation.setLongitude(point.getY());
+                carParkLocation.setLatitude(point.getX());
                 batchCarParkLocations.add(carParkLocation);
 
                 if (batchCarParkLocations.size() == 100) {
@@ -93,11 +95,13 @@ public class CarParkService implements CarParkAvailableIndexingService {
         final byte[] key = CAR_PARK_REDIS_KEY.getBytes(StandardCharsets.UTF_8);
         redisTemplate.executePipelined(
             (RedisCallback<Integer>) connection -> {
-                JedisConnection jedisConnection = (JedisConnection) connection;
-                batchIndexingCarParkDTOs.forEach(item ->
-                    jedisConnection.geoCommands().geoAdd(key, new Point(item.getLongitude(), item.getLatitude()), SerializationUtils.serialize((item)))
+                batchIndexingCarParkDTOs.forEach(item -> {
+                    connection.geoCommands().geoRemove(key, SerializationUtils.serialize((item)));
+                    connection.geoCommands().geoAdd(key, new Point(item.getLongitude(), item.getLatitude()), SerializationUtils.serialize((item)));
+                }
+
                 );
-                return batchIndexingCarParkDTOs.size();
+                return null;
             });
     }
 

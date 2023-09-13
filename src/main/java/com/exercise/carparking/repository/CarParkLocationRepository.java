@@ -7,5 +7,5 @@ import java.util.List;
 public interface CarParkLocationRepository {
     int save(List<CarParkLocation> carParkLocations);
 
-    boolean hasData();
+    boolean isEmpty();
 }
