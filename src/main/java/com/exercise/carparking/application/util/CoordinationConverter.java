@@ -16,7 +16,7 @@ public class CoordinationConverter {
         SVY21_TRANSFORM = ctFactory.createTransform(SVY21, WGS84);
     }
 
-    public static synchronized CoordinationConverter getInstance() {
+    public static CoordinationConverter getInstance() {
         if (instance != null) {
             return instance;
         }
