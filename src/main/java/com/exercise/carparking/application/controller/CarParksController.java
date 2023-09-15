@@ -25,7 +25,9 @@ public class CarParksController {
                                                      @RequestParam("latitude") double latitude,
                                                      @RequestParam(value = "page", defaultValue = "1", required = false) int page,
                                                      @RequestParam(value = "per_page", defaultValue = "30", required = false) int per_page) {
-        if (page <= 0 || per_page <= 0) {
+        boolean isValidLongitude = longitude <= 180.0 && longitude >= -180.0;
+        boolean isValidLatitude = latitude <= 85.05112878 && latitude >= -85.05112878;
+        if (page <= 0 || per_page <= 0 || !(isValidLongitude && isValidLatitude)) {
             return Collections.emptyList();
         }
         return carParkService.nearest(longitude, latitude, page, per_page);
